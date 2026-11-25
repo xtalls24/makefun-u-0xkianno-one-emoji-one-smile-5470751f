@@ -23,9 +23,12 @@ import os
 
 EMOJI = "\U0001F60A"  # 😊
 
-def main() -> None:
-    text = EMOJI
-    assert 1 <= len(text) <= 8 and text.strip(), "entry must be 1-8 chars, not blank"
+def gate_ok(text: str) -> bool:
+    """The gate: UTF-8 text of 1-8 characters, not only white space."""
+    return 1 <= len(text) <= 8 and bool(text.strip())
+
+def write_entry(text: str) -> str:
+    assert gate_ok(text), "entry must be 1-8 chars, not blank"
     try:
         os.makedirs("/output", exist_ok=True)
         target = "/output/entry.txt"
@@ -35,6 +38,16 @@ def main() -> None:
         target = os.path.join("output", "entry.txt")
     with open(target, "w", encoding="utf-8", newline="") as fh:
         fh.write(text)
+    return target
+
+def main() -> None:
+    target = write_entry(EMOJI)
+    # Read back and confirm what the gate will see.
+    with open(target, "rb") as fh:
+        data = fh.read()
+    text = data.decode("utf-8")
+    assert gate_ok(text), f"gate check failed on {target!r}"
+    assert text == EMOJI, "written text drifted from the chosen emoji"
 
 if __name__ == "__main__":
     main()
